@@ -3,15 +3,24 @@
 .DS_Store
 Thumbs.db
 
-# Auditorías y fotografías de clientes
+# Datos reales de auditorías
 capturas/
 auditorias/
 exportaciones/
 data/
 
-# Archivos exportados
+# Exportaciones generadas
 *.zip
+LF-*_PANORAMICA.jpg
+LF-*_LD510.png
+captura_campo.json
+auditoria.json
 
-# Archivos temporales
+# Reportes y archivos técnicos
+*.pdf
+fugas_extraidas.*
+fugas_configuradas.*
+
+# Temporales
 *.tmp
 *.log

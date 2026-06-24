@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover"
+    >
+
+    <meta name="theme-color" content="#123a63">
+
+    <meta
+        name="description"
+        content="Aplicación SAIRCOM para registrar fotografías panorámicas de fugas de aire comprimido."
+    >
+
+    <title>Captura de Fugas SAIRCOM</title>
+
+    <link rel="manifest" href="./manifest.json">
+    <link rel="stylesheet" href="./css/styles.css">
+
+    <link
+        rel="icon"
+        type="image/png"
+        sizes="192x192"
+        href="./icons/icon-192.png"
+    >
+</head>
+
+<body>
+    <header class="app-header">
+        <div>
+            <p class="app-eyebrow">SAIRCOM PERÚ</p>
+            <h1>Captura de fugas</h1>
+        </div>
+
+        <span id="connection-status" class="status-badge">
+            Verificando…
+        </span>
+    </header>
+
+    <main class="app-main">
+        <!-- ==========================================
+             NUEVA AUDITORÍA
+        =========================================== -->
+
+        <section class="card">
+            <h2>Nueva auditoría</h2>
+
+            <p class="description">
+                Registra los datos generales antes de iniciar la captura
+                de fotografías panorámicas.
+            </p>
+
+            <form id="audit-form">
+                <div class="field">
+                    <label for="client">Cliente</label>
+
+                    <input
+                        id="client"
+                        name="client"
+                        type="text"
+                        required
+                        autocomplete="organization"
+                        placeholder="Nombre del cliente"
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="plant">Planta o sede</label>
+
+                    <input
+                        id="plant"
+                        name="plant"
+                        type="text"
+                        required
+                        placeholder="Planta principal"
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="auditor">Auditor</label>
+
+                    <input
+                        id="auditor"
+                        name="auditor"
+                        type="text"
+                        required
+                        value="Abraham Yauri"
+                        autocomplete="name"
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="initial-tag">
+                        Número inicial de fuga
+                    </label>
+
+                    <input
+                        id="initial-tag"
+                        name="initialTag"
+                        type="number"
+                        min="1"
+                        step="1"
+                        required
+                        value="1"
+                    >
+                </div>
+
+                <button type="submit" class="primary-button">
+                    Crear auditoría
+                </button>
+            </form>
+
+            <p
+                id="form-message"
+                class="message"
+                aria-live="polite"
+            ></p>
+        </section>
+
+        <!-- ==========================================
+             AUDITORÍA ACTIVA Y CAPTURA
+        =========================================== -->
+
+        <section id="audit-preview" class="card hidden">
+            <h2>Auditoría activa</h2>
+
+            <dl class="summary-list">
+                <div>
+                    <dt>Cliente</dt>
+                    <dd id="preview-client">—</dd>
+                </div>
+
+                <div>
+                    <dt>Planta</dt>
+                    <dd id="preview-plant">—</dd>
+                </div>
+
+                <div>
+                    <dt>Auditor</dt>
+                    <dd id="preview-auditor">—</dd>
+                </div>
+
+                <div>
+                    <dt>TAG actual</dt>
+                    <dd id="preview-tag">—</dd>
+                </div>
+            </dl>
+
+            <div class="capture-divider"></div>
+
+            <section class="capture-section">
+                <p class="capture-eyebrow">REGISTRO EN CAMPO</p>
+
+                <h3 id="capture-tag">
+                    Registrando: LF-0001
+                </h3>
+
+                <div class="field">
+                    <label for="panoramic-title">
+                        Referencia de ubicación
+                    </label>
+
+                    <input
+                        id="panoramic-title"
+                        type="text"
+                        placeholder="Ejemplo: Máquina 1 - válvula manual"
+                        maxlength="120"
+                    >
+                </div>
+
+                <input
+                    id="photo-input"
+                    class="visually-hidden"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                >
+
+                <button
+                    id="open-camera-button"
+                    type="button"
+                    class="primary-button"
+                >
+                    Tomar foto panorámica
+                </button>
+
+                <p
+                    id="capture-message"
+                    class="message"
+                    aria-live="polite"
+                ></p>
+
+                <!-- Vista previa de la fotografía -->
+
+                <div
+                    id="photo-preview-panel"
+                    class="photo-preview-panel hidden"
+                >
+                    <h4>Vista previa</h4>
+
+                    <img
+                        id="photo-preview"
+                        class="photo-preview"
+                        alt="Vista previa de la fotografía panorámica"
+                    >
+
+                    <div class="photo-actions">
+                        <button
+                            id="repeat-photo-button"
+                            type="button"
+                            class="secondary-button"
+                        >
+                            Repetir foto
+                        </button>
+
+                        <button
+                            id="accept-photo-button"
+                            type="button"
+                            class="primary-button"
+                        >
+                            Usar esta foto
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    id="saved-photo-status"
+                    class="saved-status hidden"
+                >
+                    <strong>Foto guardada:</strong>
+                    <span id="saved-photo-name">—</span>
+                </div>
+
+                <!-- Marcador de ubicación -->
+
+                <div id="marker-panel" class="marker-panel hidden">
+                    <div class="marker-header">
+                        <div>
+                            <p class="capture-eyebrow">
+                                UBICACIÓN EXACTA
+                            </p>
+
+                            <h4>
+                                Marca el punto donde está la fuga
+                            </h4>
+                        </div>
+
+                        <span
+                            id="marker-state"
+                            class="marker-state pending"
+                        >
+                            Pendiente
+                        </span>
+                    </div>
+
+                    <p class="description">
+                        Toca directamente sobre la fotografía panorámica
+                        en el punto exacto donde se encuentra la fuga.
+                    </p>
+
+                    <div class="marker-canvas-wrapper">
+                        <canvas
+                            id="marker-canvas"
+                            aria-label="Fotografía panorámica para marcar la fuga"
+                        ></canvas>
+                    </div>
+
+                    <p
+                        id="marker-coordinates"
+                        class="marker-coordinates"
+                    >
+                        Ubicación aún no marcada.
+                    </p>
+
+                    <div class="photo-actions">
+                        <button
+                            id="clear-marker-button"
+                            type="button"
+                            class="secondary-button"
+                        >
+                            Cambiar punto
+                        </button>
+
+                        <button
+                            id="save-marker-button"
+                            type="button"
+                            class="primary-button"
+                            disabled
+                        >
+                            Guardar ubicación
+                        </button>
+                    </div>
+
+                    <p
+                        id="marker-message"
+                        class="message"
+                        aria-live="polite"
+                    ></p>
+                </div>
+
+                <!-- Continuar con el siguiente TAG -->
+
+                <div class="workflow-actions">
+                    <button
+                        id="save-continue-button"
+                        type="button"
+                        class="continue-button"
+                        disabled
+                    >
+                        Guardar fuga y continuar
+                    </button>
+
+                    <p
+                        id="continue-message"
+                        class="message"
+                        aria-live="polite"
+                    ></p>
+                </div>
+            </section>
+        </section>
+
+        <!-- ==========================================
+             RESUMEN DE FUGAS
+        =========================================== -->
+
+        <section id="audit-summary" class="card hidden">
+            <div class="summary-header">
+                <div>
+                    <p class="capture-eyebrow">
+                        CONTROL DE AVANCE
+                    </p>
+
+                    <h2>Resumen de fugas</h2>
+                </div>
+            </div>
+
+            <div class="summary-counters">
+                <article>
+                    <span id="summary-total">0</span>
+                    <small>Registradas</small>
+                </article>
+
+                <article>
+                    <span id="summary-complete">0</span>
+                    <small>Completas</small>
+                </article>
+
+                <article>
+                    <span id="summary-pending">0</span>
+                    <small>Pendientes</small>
+                </article>
+            </div>
+
+            <p id="summary-empty" class="description">
+                Aún no se han registrado fugas.
+            </p>
+
+            <div
+                id="summary-table-wrapper"
+                class="table-wrapper hidden"
+            >
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th>TAG</th>
+                            <th>Referencia</th>
+                            <th>Foto</th>
+                            <th>Ubicación</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="summary-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        Departamento de Proyectos — SAIRCOM PERÚ
+    </footer>
+
+    <script type="module" src="./js/app.js"></script>
+</body>
+</html>
