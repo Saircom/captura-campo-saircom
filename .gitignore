@@ -1,0 +1,17 @@
+# Configuración local
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Auditorías y fotografías de clientes
+capturas/
+auditorias/
+exportaciones/
+data/
+
+# Archivos exportados
+*.zip
+
+# Archivos temporales
+*.tmp
+*.log
