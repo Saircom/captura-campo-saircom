@@ -377,13 +377,59 @@
                     <tbody id="summary-table-body"></tbody>
                 </table>
             </div>
-        </section>
+            <div class="export-section">
+            <div class="export-header">
+                <div>
+                    <p class="capture-eyebrow">
+                        SALIDA DE CAMPO
+                    </p>
+
+                    <h3>Exportar auditoría</h3>
+                </div>
+            </div>
+
+            <p id="export-description" class="description">
+                Registra al menos una fuga completa para habilitar la exportación.
+            </p>
+
+            <button
+                id="export-zip-button"
+                type="button"
+                class="export-button"
+                disabled
+            >
+                Exportar auditoría ZIP
+            </button>
+
+            <div
+                id="export-progress-container"
+                class="export-progress-container hidden"
+            >
+                <progress
+                    id="export-progress"
+                    max="100"
+                    value="0"
+                ></progress>
+
+                <span id="export-progress-text">
+                    Preparando archivos…
+                </span>
+            </div>
+
+            <p
+                id="export-message"
+                class="message"
+                aria-live="polite"
+            ></p>
+        </div>
+    </section>
     </main>
 
     <footer class="app-footer">
         Departamento de Proyectos — SAIRCOM PERÚ
     </footer>
 
+    <script src="./js/vendor/jszip.min.js"></script>
     <script type="module" src="./js/app.js"></script>
 </body>
 </html>

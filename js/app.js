@@ -15,6 +15,9 @@ import {
     initializeMarker
 } from "./marker.js";
 
+import {
+    exportAuditZip
+} from "./export.js";
 
 /* ======================================================
    ELEMENTOS DE INTERFAZ
@@ -73,6 +76,30 @@ const summaryTableWrapper = document.querySelector(
 
 const summaryTableBody = document.querySelector(
     "#summary-table-body"
+);
+
+const exportZipButton = document.querySelector(
+    "#export-zip-button"
+);
+
+const exportDescription = document.querySelector(
+    "#export-description"
+);
+
+const exportMessage = document.querySelector(
+    "#export-message"
+);
+
+const exportProgressContainer = document.querySelector(
+    "#export-progress-container"
+);
+
+const exportProgress = document.querySelector(
+    "#export-progress"
+);
+
+const exportProgressText = document.querySelector(
+    "#export-progress-text"
 );
 
 const AUDIT_STORAGE_KEY = "saircom-active-audit";
@@ -174,6 +201,42 @@ function isRecordComplete(record) {
     );
 }
 
+function updateExportState(records) {
+    const total = records.length;
+
+    const complete = records.filter(
+        isRecordComplete
+    ).length;
+
+    const pending = total - complete;
+
+    if (total === 0) {
+        exportZipButton.disabled = true;
+
+        exportDescription.textContent =
+            "Registra al menos una fuga completa " +
+            "para habilitar la exportación.";
+
+        return;
+    }
+
+    if (pending > 0) {
+        exportZipButton.disabled = true;
+
+        exportDescription.textContent =
+            `Hay ${pending} fuga(s) pendiente(s). ` +
+            "Completa todos los registros antes de exportar.";
+
+        return;
+    }
+
+    exportZipButton.disabled = false;
+
+    exportDescription.textContent =
+        `${complete} fuga(s) completa(s) lista(s) ` +
+        "para exportar.";
+}
+
 
 function updateContinueButton(record) {
     saveContinueButton.disabled =
@@ -246,6 +309,8 @@ async function refreshSummary() {
     summaryPending.textContent = String(
         pendingRecords
     );
+
+    updateExportState(records);
 
     summaryTableBody.replaceChildren();
 
@@ -742,6 +807,99 @@ summaryTableBody.addEventListener(
                 behavior: "smooth",
                 block: "start"
             });
+    }
+);
+
+/* ======================================================
+   EXPORTAR AUDITORÍA
+====================================================== */
+
+exportZipButton.addEventListener(
+    "click",
+    async () => {
+        if (!activeAudit) {
+            exportMessage.textContent =
+                "No existe una auditoría activa.";
+
+            exportMessage.className =
+                "message error";
+
+            return;
+        }
+
+        exportZipButton.disabled = true;
+        exportProgress.value = 0;
+
+        exportProgressContainer.classList.remove(
+            "hidden"
+        );
+
+        exportMessage.textContent = "";
+        exportMessage.className = "message";
+
+        exportProgressText.textContent =
+            "Preparando fotografías y archivos…";
+
+        try {
+            const records =
+                await getPanoramicPhotosByAudit(
+                    activeAudit.id
+                );
+
+            const result = await exportAuditZip({
+                audit: activeAudit,
+                records,
+
+                onProgress(percent) {
+                    const rounded = Math.round(percent);
+
+                    exportProgress.value = rounded;
+
+                    exportProgressText.textContent =
+                        `Generando ZIP: ${rounded}%`;
+                }
+            });
+
+            activeAudit.exportedAt =
+                new Date().toISOString();
+
+            saveTemporaryAudit(activeAudit);
+
+            const sizeMb = (
+                result.sizeBytes /
+                1024 /
+                1024
+            ).toFixed(2);
+
+            exportMessage.textContent =
+                `Exportación completada: ` +
+                `${result.fileName} (${sizeMb} MB).`;
+
+            exportMessage.className =
+                "message success";
+
+            exportProgress.value = 100;
+
+            exportProgressText.textContent =
+                `${result.recordsExported} fuga(s) exportada(s).`;
+
+        } catch (error) {
+            console.error(error);
+
+            exportMessage.textContent =
+                error instanceof Error
+                    ? error.message
+                    : "No se pudo exportar la auditoría.";
+
+            exportMessage.className =
+                "message error";
+
+            exportProgressText.textContent =
+                "La exportación no se completó.";
+
+        } finally {
+            await refreshSummary();
+        }
     }
 );
 
