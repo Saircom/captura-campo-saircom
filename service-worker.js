@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "saircom-captura-v6";
+const CACHE_NAME = "saircom-captura-v8";
 
 const APP_FILES = [
     "./",
@@ -27,39 +27,90 @@ self.addEventListener("install", (event) => {
     self.skipWaiting();
 });
 
+
 self.addEventListener("activate", (event) => {
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames
-                    .filter(
-                        (cacheName) =>
-                            cacheName !== CACHE_NAME
-                    )
-                    .map(
-                        (cacheName) =>
-                            caches.delete(cacheName)
-                    )
-            );
-        })
-    );
+        Promise.all([
+            caches.keys().then((cacheNames) => {
+                return Promise.all(
+                    cacheNames
+                        .filter(
+                            (cacheName) =>
+                                cacheName !== CACHE_NAME
+                        )
+                        .map(
+                            (cacheName) =>
+                                caches.delete(cacheName)
+                        )
+                );
+            }),
 
-    self.clients.claim();
+            self.clients.claim()
+        ])
+    );
 });
 
+
+async function networkFirst(request) {
+    try {
+        const networkResponse = await fetch(
+            request,
+            {
+                cache: "no-store"
+            }
+        );
+
+        if (networkResponse?.ok) {
+            const cache = await caches.open(
+                CACHE_NAME
+            );
+
+            await cache.put(
+                request,
+                networkResponse.clone()
+            );
+        }
+
+        return networkResponse;
+
+    } catch (networkError) {
+        const cachedResponse = await caches.match(
+            request
+        );
+
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+
+        if (request.mode === "navigate") {
+            const cachedPage = await caches.match(
+                "./index.html"
+            );
+
+            if (cachedPage) {
+                return cachedPage;
+            }
+        }
+
+        throw networkError;
+    }
+}
+
+
 self.addEventListener("fetch", (event) => {
-    if (event.request.method !== "GET") {
+    const request = event.request;
+
+    if (request.method !== "GET") {
+        return;
+    }
+
+    const requestUrl = new URL(request.url);
+
+    if (requestUrl.origin !== self.location.origin) {
         return;
     }
 
     event.respondWith(
-        caches.match(event.request).then(
-            (cachedResponse) => {
-                return (
-                    cachedResponse ||
-                    fetch(event.request)
-                );
-            }
-        )
+        networkFirst(request)
     );
 });

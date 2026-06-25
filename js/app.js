@@ -214,16 +214,6 @@ function updateExportState(records) {
         exportZipButton.disabled = true;
 
         exportDescription.textContent =
-            "Registra al menos una fuga completa " +
-            "para habilitar la exportación.";
-
-        return;
-    }
-
-    if (pending > 0) {
-        exportZipButton.disabled = true;
-
-        exportDescription.textContent =
             `Hay ${pending} fuga(s) pendiente(s). ` +
             "Completa todos los registros antes de exportar.";
 
@@ -932,15 +922,41 @@ if (storedAudit) {
 ====================================================== */
 
 if ("serviceWorker" in navigator) {
-    window.addEventListener("load", async () => {
-        try {
-            await navigator.serviceWorker.register(
-                "./service-worker.js"
-            );
+    let reloadingForUpdate = false;
+
+    navigator.serviceWorker.addEventListener(
+        "controllerchange",
+        () => {
+            if (reloadingForUpdate) {
+                return;
+            }
+
+            reloadingForUpdate = true;
 
             console.info(
-                "Service worker registrado."
+                "Nueva versión detectada. Recargando aplicación."
             );
+
+            window.location.reload();
+        }
+    );
+
+    window.addEventListener("load", async () => {
+        try {
+            const registration =
+                await navigator.serviceWorker.register(
+                    "./service-worker.js",
+                    {
+                        updateViaCache: "none"
+                    }
+                );
+
+            await registration.update();
+
+            console.info(
+                "Service worker registrado y actualizado."
+            );
+
         } catch (error) {
             console.error(
                 "No se pudo registrar el service worker:",

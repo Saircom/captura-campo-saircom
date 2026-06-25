@@ -42,7 +42,54 @@ function isComplete(record) {
 }
 
 
-function downloadBlob(blob, fileName) {
+async function downloadBlob(blob, fileName) {
+    const zipFile = new File(
+        [blob],
+        fileName,
+        {
+            type: "application/zip"
+        }
+    );
+
+    /*
+     * En Android se intenta primero utilizar
+     * el menú nativo para guardar o compartir el ZIP.
+     */
+    if (
+        typeof navigator.share === "function" &&
+        typeof navigator.canShare === "function" &&
+        navigator.canShare({
+            files: [zipFile]
+        })
+    ) {
+        try {
+            await navigator.share({
+                title: "Auditoría de fugas SAIRCOM",
+                text: "Exportación de la auditoría de campo.",
+                files: [zipFile]
+            });
+
+            return;
+
+        } catch (error) {
+            if (error?.name === "AbortError") {
+                throw new Error(
+                    "La exportación fue cancelada."
+                );
+            }
+
+            console.warn(
+                "No se pudo usar el menú de compartir. " +
+                "Se intentará la descarga normal.",
+                error
+            );
+        }
+    }
+
+    /*
+     * Respaldo para computadora o navegadores
+     * que no admiten compartir archivos.
+     */
     const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
 
@@ -56,7 +103,7 @@ function downloadBlob(blob, fileName) {
 
     window.setTimeout(() => {
         URL.revokeObjectURL(objectUrl);
-    }, 1500);
+    }, 3000);
 }
 
 
@@ -217,7 +264,7 @@ export async function exportAuditZip({
     const fileName =
         `${client}_${plant}_${getExportDate()}.zip`;
 
-    downloadBlob(zipBlob, fileName);
+    await downloadBlob(zipBlob, fileName);
 
     return {
         fileName,
