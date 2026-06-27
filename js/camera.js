@@ -32,7 +32,9 @@ async function convertToJpeg(
     const originalHeight = image.naturalHeight;
 
     if (!originalWidth || !originalHeight) {
-        throw new Error("La fotografía no tiene dimensiones válidas.");
+        throw new Error(
+            "La fotografía no tiene dimensiones válidas."
+        );
     }
 
     const scale = Math.min(
@@ -87,13 +89,32 @@ async function convertToJpeg(
     });
 }
 
+function getFileSourceLabel(source) {
+    if (source === "gallery") {
+        return "galería";
+    }
+
+    return "cámara";
+}
+
 export function initializeCameraCapture({
     getCurrentTag,
     onPhotoAccepted
 }) {
-    const photoInput = document.querySelector("#photo-input");
+    const cameraInput = document.querySelector(
+        "#photo-camera-input"
+    );
+
+    const galleryInput = document.querySelector(
+        "#photo-gallery-input"
+    );
+
     const openCameraButton = document.querySelector(
         "#open-camera-button"
+    );
+
+    const openGalleryButton = document.querySelector(
+        "#open-gallery-button"
     );
 
     const repeatPhotoButton = document.querySelector(
@@ -108,10 +129,16 @@ export function initializeCameraCapture({
         "#photo-preview-panel"
     );
 
-    const previewImage = document.querySelector("#photo-preview");
-    const captureMessage = document.querySelector("#capture-message");
+    const previewImage = document.querySelector(
+        "#photo-preview"
+    );
+
+    const captureMessage = document.querySelector(
+        "#capture-message"
+    );
 
     let selectedFile = null;
+    let selectedSource = null;
     let previewUrl = null;
 
     function showMessage(message, type = "") {
@@ -126,30 +153,47 @@ export function initializeCameraCapture({
         }
 
         selectedFile = null;
-        photoInput.value = "";
+        selectedSource = null;
+
+        if (cameraInput) {
+            cameraInput.value = "";
+        }
+
+        if (galleryInput) {
+            galleryInput.value = "";
+        }
+
         previewImage.removeAttribute("src");
         previewPanel.classList.add("hidden");
     }
 
     function openCamera() {
-        photoInput.value = "";
-        photoInput.click();
+        if (!cameraInput) {
+            showMessage(
+                "No se encontró el control de cámara.",
+                "error"
+            );
+            return;
+        }
+
+        cameraInput.value = "";
+        cameraInput.click();
     }
 
-    openCameraButton.addEventListener("click", () => {
-        showMessage("");
-        openCamera();
-    });
+    function openGallery() {
+        if (!galleryInput) {
+            showMessage(
+                "No se encontró el control de galería.",
+                "error"
+            );
+            return;
+        }
 
-    repeatPhotoButton.addEventListener("click", () => {
-        clearPreview();
-        showMessage("");
-        openCamera();
-    });
+        galleryInput.value = "";
+        galleryInput.click();
+    }
 
-    photoInput.addEventListener("change", () => {
-        const file = photoInput.files?.[0];
-
+    function handleSelectedFile(file, source) {
         if (!file) {
             return;
         }
@@ -168,12 +212,14 @@ export function initializeCameraCapture({
         }
 
         selectedFile = file;
+        selectedSource = source;
         previewUrl = URL.createObjectURL(file);
 
         previewImage.src = previewUrl;
         previewPanel.classList.remove("hidden");
 
         showMessage(
+            `Imagen cargada desde ${getFileSourceLabel(source)}. ` +
             "Revisa la fotografía antes de aceptarla."
         );
 
@@ -181,12 +227,43 @@ export function initializeCameraCapture({
             behavior: "smooth",
             block: "start"
         });
+    }
+
+    openCameraButton.addEventListener("click", () => {
+        showMessage("");
+        openCamera();
+    });
+
+    openGalleryButton.addEventListener("click", () => {
+        showMessage("");
+        openGallery();
+    });
+
+    repeatPhotoButton.addEventListener("click", () => {
+        clearPreview();
+        showMessage(
+            "Puedes tomar una nueva foto o seleccionar una imagen de galería."
+        );
+    });
+
+    cameraInput.addEventListener("change", () => {
+        handleSelectedFile(
+            cameraInput.files?.[0],
+            "camera"
+        );
+    });
+
+    galleryInput.addEventListener("change", () => {
+        handleSelectedFile(
+            galleryInput.files?.[0],
+            "gallery"
+        );
     });
 
     acceptPhotoButton.addEventListener("click", async () => {
         if (!selectedFile) {
             showMessage(
-                "Primero debes tomar una fotografía.",
+                "Primero debes tomar una fotografía o seleccionar una imagen de galería.",
                 "error"
             );
             return;
@@ -204,6 +281,7 @@ export function initializeCameraCapture({
 
         acceptPhotoButton.disabled = true;
         openCameraButton.disabled = true;
+        openGalleryButton.disabled = true;
 
         showMessage("Procesando fotografía…");
 
@@ -212,7 +290,8 @@ export function initializeCameraCapture({
 
             const accepted = await onPhotoAccepted({
                 codigo,
-                blob: jpegBlob
+                blob: jpegBlob,
+                source: selectedSource
             });
 
             if (accepted !== false) {
@@ -233,6 +312,7 @@ export function initializeCameraCapture({
         } finally {
             acceptPhotoButton.disabled = false;
             openCameraButton.disabled = false;
+            openGalleryButton.disabled = false;
         }
     });
 

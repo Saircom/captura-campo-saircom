@@ -172,20 +172,37 @@
                 </div>
 
                 <input
-                    id="photo-input"
+                    id="photo-camera-input"
                     class="visually-hidden"
                     type="file"
                     accept="image/*"
                     capture="environment"
                 >
 
-                <button
-                    id="open-camera-button"
-                    type="button"
-                    class="primary-button"
+                <input
+                    id="photo-gallery-input"
+                    class="visually-hidden"
+                    type="file"
+                    accept="image/*"
                 >
-                    Tomar foto panorámica
-                </button>
+
+                <div class="capture-source-actions">
+                    <button
+                        id="open-camera-button"
+                        type="button"
+                        class="primary-button"
+                    >
+                        Tomar foto panorámica
+                    </button>
+
+                    <button
+                        id="open-gallery-button"
+                        type="button"
+                        class="secondary-button"
+                    >
+                        Seleccionar de galería
+                    </button>
+                </div>
 
                 <p
                     id="capture-message"

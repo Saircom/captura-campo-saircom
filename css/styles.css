@@ -612,3 +612,24 @@ button:disabled {
     color: #526174;
     font-size: 0.8rem;
 }
+
+
+/* ======================================================
+   FUENTE DE FOTOGRAFÍA: CÁMARA O GALERÍA
+====================================================== */
+
+.capture-source-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.capture-source-actions .secondary-button {
+    background: #ffffff;
+}
+
+@media (min-width: 560px) {
+    .capture-source-actions {
+        grid-template-columns: 1fr 1fr;
+    }
+}
