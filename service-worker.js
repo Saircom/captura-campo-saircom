@@ -15,6 +15,7 @@ const APP_FILES = [
     "./js/vendor/jszip.min.js",
     "./icons/icon-192.png",
     "./icons/icon2-192.png",
+    "./icons/icon-48.png",
     "./icons/icon-512.png"
 ];
 
