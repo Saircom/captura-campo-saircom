@@ -111,6 +111,22 @@ let cameraController = null;
 /* ======================================================
    FUNCIONES GENERALES
 ====================================================== */
+function hideAppLoader() {
+    const appLoader = document.getElementById(
+        "app-loader"
+    );
+
+    if (!appLoader) {
+        return;
+    }
+
+    appLoader.classList.add("is-hidden");
+
+    window.setTimeout(() => {
+        appLoader.remove();
+    }, 400);
+}
+
 
 function formatLeakTag(number) {
     return `LF-${String(number).padStart(4, "0")}`;
@@ -916,6 +932,18 @@ if (storedAudit) {
     showAudit(storedAudit);
 }
 
+window.addEventListener(
+    "load",
+    () => {
+        window.setTimeout(
+            hideAppLoader,
+            900
+        );
+    },
+    {
+        once: true
+    }
+);
 
 /* ======================================================
    SERVICE WORKER

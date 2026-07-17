@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "saircom-captura-v12";
+const CACHE_NAME = "saircom-captura-v14";
 
 const APP_FILES = [
     "./",

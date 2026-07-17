@@ -633,3 +633,88 @@ button:disabled {
         grid-template-columns: 1fr 1fr;
     }
 }
+
+/* ======================================================
+   PANTALLA PERSONALIZADA DE CARGA
+====================================================== */
+
+.app-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 100vh;
+    padding:
+        env(safe-area-inset-top)
+        20px
+        env(safe-area-inset-bottom);
+
+    background: #f3f6f9;
+
+    opacity: 1;
+    visibility: visible;
+
+    transition:
+        opacity 0.35s ease,
+        visibility 0.35s ease;
+}
+
+/* Estado utilizado por JavaScript para ocultarla */
+
+.app-loader.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.app-loader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: min(88vw, 340px);
+
+    text-align: center;
+}
+
+.app-loader-image {
+    display: block;
+
+    width: 192px;
+    max-width: 72vw;
+    height: auto;
+
+    object-fit: contain;
+}
+
+.app-loader-version {
+    margin: 18px 0 0;
+
+    color: #526174;
+    font-size: 0.83rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.app-loader-spinner {
+    width: 30px;
+    height: 30px;
+    margin-top: 20px;
+
+    border: 4px solid rgba(18, 58, 99, 0.16);
+    border-top-color: #009b84;
+    border-radius: 50%;
+
+    animation: app-loader-rotate 0.8s linear infinite;
+}
+
+@keyframes app-loader-rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
