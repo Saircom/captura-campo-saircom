@@ -937,7 +937,7 @@ window.addEventListener(
     () => {
         window.setTimeout(
             hideAppLoader,
-            900
+            1500
         );
     },
     {
